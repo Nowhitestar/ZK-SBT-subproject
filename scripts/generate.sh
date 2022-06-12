@@ -12,7 +12,7 @@ generate_proof() {
 
   snarkjs groth16 verify $CIRCUIT/verification_key.json $CIRCUIT_JS/public.json $CIRCUIT_JS/proof.json
 
-  snarkjs zkey export soliditycalldata $CIRCUIT_JS/public.json $CIRCUIT_JS/proof.json
+  snarkjs zkey export soliditycalldata $CIRCUIT_JS/public.json $CIRCUIT_JS/proof.json > build/verify/verify_js/call.txt
 }
 
 generate_proof $1

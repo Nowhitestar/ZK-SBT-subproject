@@ -1,5 +1,12 @@
 # Zero-Knowledge Soul-Bound-Token (ZK SBT)
 
+This project is forked from [enricobottazzi/ZK-SBT](https://github.com/enricobottazzi/ZK-SBT) as a basis of my zku final project. I will make some changes and improvements from this project:
+
+- [ ] Add a frontend
+- [ ] Add a admin frontend
+- [ ] Add a admin backend
+- [ ] Make claims more customizable to facilitate certification under different conditions
+
 One of the major concerns with SBTs presented in the Decentralized Society [paper](https://vitalik.ca/general/2022/01/26/soulbound.html) (Glen Wely, Puja Ohlhaver, and Vitalik Buterin) and [article](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4105763) (Vitalik Buterin) has been the assumption that SBTs contain public data on-chain. This assumption has stirred a lot of debate in the Web3 community with what technical substrate to be leveraging in order to represent the key outcomes from the Decentralized Society paper (Verifiable Credentials or assumed technical specs of an SBT).  
 
 As Vitalik Buterin has mentioned [publicly](https://twitter.com/VitalikButerin/status/1530265766032838656?s=20&t=hNyxz5KEaL1cW5crxj01Rw) "I think the optimal technical solution [to represent identity related information] includes both a chain and off-chain data and ZKPs over both". Not only Vitalik, but many thought leaders in the VC and Web3 native communities have agreed that the solution is not binary, but a pluralistic one. 
@@ -18,7 +25,9 @@ ZK SBTs allows for the creation of a composable network of trust. The token is a
 
 The proof of concept introduced here is based on this approach. 
 
-Core Team: [Enrico Bottazzi](https://twitter.com/backaes) + [Shrey Jain](https://twitter.com/shreyjaineth).
+Original Core Team: [Enrico Bottazzi](https://twitter.com/backaes) + [Shrey Jain](https://twitter.com/shreyjaineth).
+
+Modifier: [Lewis Liao](https://twitter.com/crypto_bubai)
 
 The repository is not production ready and shouldn't be used anywhere apart from testnets.ß
 
@@ -85,6 +94,10 @@ The proof is then verified inside the smart contract against the hashed signed i
 
 ![PrivateSBT](imgs/onchain-offchain.png "PrivateSBT")
 
+### Environment Variables
+
+This project was tested via the Polygon Mumbai test network, with the environment variables set in the `.env.smapl` file. You need to register with [Alchemy](https://t.co/kn213Jtuq8) and get a link to the Mumbai test network, register two test wallets and get test coins through the [Mumbai facet](https://mumbaifaucet.com/).
+
 ### Scripts
 
 The circuits have been pre-compiled using the `powersOfTau28_hez_final_15.ptau`trusted set-up.
@@ -92,9 +105,8 @@ The circuits have been pre-compiled using the `powersOfTau28_hez_final_15.ptau`t
 - Issue, sign the claim, define the query in order to generate the input for the circuit. 
 
     ```bash
-    go run scripts/signClaim.go
+    go run scripts/signClaim.go > build/verify/verify_js/input.json
     ```
-    copy and paste the result inside a new file called `input.json` inside `build/verify/verify_js`
 
 - Deploy the smart contracts
 
@@ -124,7 +136,7 @@ The circuits have been pre-compiled using the `powersOfTau28_hez_final_15.ptau`t
 
 ### Test
 
-`mocha` to test the contract and the circuit
+Just run `npx mocha` to test the contract and the circuit
 
 ### Other Design choices
 
