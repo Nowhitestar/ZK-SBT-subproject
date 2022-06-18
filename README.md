@@ -96,7 +96,7 @@ The proof is then verified inside the smart contract against the hashed signed i
 
 ### Environment Variables
 
-This project was tested via the Polygon Mumbai test network, with the environment variables set in the `.env.smapl` file. You need to register with [Alchemy](https://t.co/kn213Jtuq8) and get a link to the Mumbai test network, register two test wallets and get test coins through the [Mumbai facet](https://mumbaifaucet.com/).
+This project was tested via the Polygon Mumbai test network, with the environment variables set in the `.env.sample` file. You need to register with [Alchemy](https://t.co/kn213Jtuq8) and get a link to the Mumbai test network, register two test wallets and get test coins through the [Mumbai facet](https://mumbaifaucet.com/).
 
 ### Scripts
 

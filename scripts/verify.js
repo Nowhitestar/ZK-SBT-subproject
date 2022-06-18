@@ -21,7 +21,7 @@ async function main() {
     let b = [[calldata[2], calldata[3]],[calldata[4], calldata[5]]]
     let c = [calldata[6], calldata[7]]
     // input[72] represents the public input of the circuit
-    let input = calldata.slice(8,) 
+    let input = calldata.slice(11,) 
     let tokenID = "1"; // to add
 
     let privateOver18Aidrop = await hre.ethers.getContractAt("PrivateOver18Airdrop", PRIVATAIDROP_ADDR)
