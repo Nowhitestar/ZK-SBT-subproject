@@ -7,6 +7,11 @@ This project is forked from [enricobottazzi/ZK-SBT](https://github.com/enricobot
 - [ ] Add a admin backend
 - [ ] Make claims more customizable to facilitate certification under different conditions
 
+Now, I am working on *Make claims more customizable to facilitate certification under different conditions*:
+
+- [x] Switch to credential query sig
+- [ ] Expanding claim structure and modify the circuits(working on this now), which means it not only prove `PrivateOver18Airdrop` but also other conditions like degree or work experience.
+
 One of the major concerns with SBTs presented in the Decentralized Society [paper](https://vitalik.ca/general/2022/01/26/soulbound.html) (Glen Wely, Puja Ohlhaver, and Vitalik Buterin) and [article](https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4105763) (Vitalik Buterin) has been the assumption that SBTs contain public data on-chain. This assumption has stirred a lot of debate in the Web3 community with what technical substrate to be leveraging in order to represent the key outcomes from the Decentralized Society paper (Verifiable Credentials or assumed technical specs of an SBT).  
 
 As Vitalik Buterin has mentioned [publicly](https://twitter.com/VitalikButerin/status/1530265766032838656?s=20&t=hNyxz5KEaL1cW5crxj01Rw) "I think the optimal technical solution [to represent identity related information] includes both a chain and off-chain data and ZKPs over both". Not only Vitalik, but many thought leaders in the VC and Web3 native communities have agreed that the solution is not binary, but a pluralistic one. 
@@ -42,7 +47,7 @@ The core data structure used to represent identity related information is [Iden3
 - When issued, the issuer signs the claim and passes the signature to the receiver of the claim
 - Claims and claims' signatures live off-chain
 
-This example considers an elementary claims that attests someone's age: `ageClaim`
+This example considers an elementary claims that attests someone's age: `issuerCoreClaim`
 
 ```
 Index:
@@ -80,7 +85,7 @@ The query, on a elementary level, looks like this:
 ```
     SlotIndex: 2,  // Position inside the claim of the queried value
     Values:    18, // Threshold value
-    Operator:  3,  // 3 means "greater than"
+    Operator:  2,  // 2 means "greater than"
 ```
 
 The ZK SBT owner starting from the signed claim and the verifier's query can generate a proof that includes:
