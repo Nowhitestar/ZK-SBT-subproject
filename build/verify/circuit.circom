@@ -1,5 +1,14 @@
 pragma circom 2.0.0;
 
-include "lib/verify-claim.circom";
+include "lib/query/credentialAtomicQuerySig.circom";
 
-component main {public [sigR8x,sigR8y,sigS,pubKeyX,pubKeyY,claimSchema,slotIndex,operator,value]} = verifyClaim(64);
+component main{public [challenge,
+                        userID,
+                        userState,
+                        issuerID,
+                        issuerClaimNonRevState,
+                        claimSchema,
+                        slotIndex,
+                        operator,
+                        value,
+                        timestamp]} = CredentialAtomicQuerySig(32, 32, 64);

@@ -73,7 +73,8 @@ func main() {
 		issuerAuthClaimRevNonce, iRevTree.Root())
 
 	// issue issuerClaim for user
-	dataSlotA, _ := core.NewElemBytesFromInt(big.NewInt(25))
+	dataSlotA, _ := core.NewElemBytesFromInt(big.NewInt(25)) // age = 25
+	dataSlotB, _ := core.NewElemBytesFromInt(big.NewInt(3)) // degree = doctor, 0 is none, 1 is bachelor, 2 is master, 3 is doctor
 
 	nonce := 1
 	var schemaHash core.SchemaHash
@@ -85,7 +86,7 @@ func main() {
 	issuerCoreClaim, _ := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithIndexData(dataSlotA, dataSlotB),
 		core.WithExpirationDate(time.Unix(1669884010,
 			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
@@ -157,7 +158,7 @@ func main() {
 
 	query := circuits.Query{
 		SlotIndex: 2,
-		Values:    []*big.Int{new(big.Int).SetInt64(18)},
+		Values:    []*big.Int{new(big.Int).SetInt64(18),new(big.Int).SetInt64(3)},
 		Operator:  2,
 	}
 

@@ -47,7 +47,7 @@ The core data structure used to represent identity related information is [Iden3
 - When issued, the issuer signs the claim and passes the signature to the receiver of the claim
 - Claims and claims' signatures live off-chain
 
-This example considers an elementary claims that attests someone's age: `issuerCoreClaim`
+This example considers an elementary claims that attests someone's age: `inputsUserClaim`
 
 ```
 Index:
