@@ -1,184 +1,115 @@
 package main
 
 import (
-	"context"
+	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math/big"
-	"time"
 
-	"github.com/iden3/go-circuits"
-	it "github.com/iden3/go-circuits/testing"
+	//"github.com/iden3/go-circuits"
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-iden3-crypto/poseidon"
+	"github.com/iden3/go-iden3-crypto/babyjub"
+	poseidon "github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
-	"github.com/iden3/go-merkletree-sql/db/memory"
 )
 
+type MultiQuery struct {
+	SlotIndex []*big.Int
+	Values    []*big.Int
+	Operator  []*big.Int
+}
+
+type verifyClaimCircuitInputs struct {
+	Claim        *core.Claim `json:"claim"`
+	SignatureR8X string      `json:"sigR8x"`
+	SignatureR8Y string      `json:"sigR8y"`
+	SignatureS   string      `json:"sigS"`
+	PubKeyX      string      `json:"pubKeyX"`
+	PubKeyY      string      `json:"pubKeyY"`
+	ClaimSchema  string      `json:"claimSchema"`
+	SlotIndex    []*big.Int  `json:"slotIndex"`
+	Operator     []*big.Int  `json:"operator"`
+	Value        []*big.Int  `json:"value"`
+}
+
 func main() {
-	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
-	challenge := new(big.Int).SetInt64(1)
-	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, _, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
-		userPrivKHex)
+	// // to generate a random private key
+	// privKey := babyjub.NewRandPrivKey()
 
-	state, _ := merkletree.HashElems(
-		uClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
+	var privKey babyjub.PrivateKey
 
-	userAuthTreeState := circuits.TreeState{
-		State:          state,
-		ClaimsRoot:     uClaimsTree.Root(),
-		RevocationRoot: &merkletree.HashZero,
-		RootOfRoots:    &merkletree.HashZero,
-	}
+	privKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
 
-	hIndexAuthEntryUser, _, _ := claimsIndexValueHashes(*userAuthCoreClaim)
+	hex.Decode(privKey[:], []byte(privKHex))
 
-	mtpProofUser, _, _ := uClaimsTree.GenerateProof(ctx,
-		hIndexAuthEntryUser, uClaimsTree.Root())
+	X := privKey.Public().X
+	Y := privKey.Public().Y
 
-	message := big.NewInt(0).SetBytes(challenge.Bytes())
-
-	challengeSignature := userPrivateKey.SignPoseidon(message)
-
-	// Issuer
-	issuerIdentity, iClaimsTree, iRevTree, _, _, issuerAuthClaim, issuerKey := it.Generate(ctx,
-		issuerPrivKHex)
-
-	// issuer state
-	issuerGenesisState, _ := merkletree.HashElems(
-		iClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
-
-	issuerAuthTreeState := circuits.TreeState{
-		State:          issuerGenesisState,
-		ClaimsRoot:     iClaimsTree.Root(),
-		RevocationRoot: &merkletree.HashZero,
-		RootOfRoots:    &merkletree.HashZero,
-	}
-
-	hIndexAuthEntryIssuer, _, _ :=
-		claimsIndexValueHashes(*issuerAuthClaim)
-
-	mtpProofIssuer, _, _ := iClaimsTree.GenerateProof(ctx,
-		hIndexAuthEntryIssuer, iClaimsTree.Root())
-
-	issuerAuthClaimRevNonce := new(big.Int).SetUint64(issuerAuthClaim.GetRevocationNonce())
-	issuerAuthNonRevProof, _, _ := iRevTree.GenerateProof(ctx,
-		issuerAuthClaimRevNonce, iRevTree.Root())
-
-	// issue issuerClaim for user
-	dataSlotA, _ := core.NewElemBytesFromInt(big.NewInt(25)) // age = 25
+	// issue claim for user adding 25 in the data slot for age
+	dataSlotA, _ := core.NewElemBytesFromInt(big.NewInt(25))
 	dataSlotB, _ := core.NewElemBytesFromInt(big.NewInt(3)) // degree = doctor, 0 is none, 1 is bachelor, 2 is master, 3 is doctor
 
-	nonce := 1
+	// add a random nonce to avoid rainbow attacks
+	RandomInt, _ := rand.Prime(rand.Reader, 128)
+	dataSlotC, _ := core.NewElemBytesFromInt(RandomInt)
+
 	var schemaHash core.SchemaHash
 
+	// Add the schema hash for age claim standard
 	schemaBytes, _ := hex.DecodeString("ce6bb12c96bfd1544c02c289c6b4b987")
 
 	copy(schemaHash[:], schemaBytes)
 
-	issuerCoreClaim, _ := core.NewClaim(
+	ageClaim, _ := core.NewClaim(
 		schemaHash,
-		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, dataSlotB),
-		core.WithExpirationDate(time.Unix(1669884010,
-			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
-		core.WithRevocationNonce(uint64(nonce)))
+		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithValueData(dataSlotB, core.ElemBytes{}),
+		core.WithValueData(dataSlotC, core.ElemBytes{}))
 
-	hashIndex, hashValue, _ := claimsIndexValueHashes(*issuerCoreClaim)
+	hashIndex, hashValue, _ := claimsIndexValueHashes(*ageClaim)
 
 	commonHash, _ := merkletree.HashElems(hashIndex, hashValue)
 
-	claimSignature := issuerKey.SignPoseidon(commonHash.BigInt())
-
-	iClaimsTree.Add(ctx, hashIndex, hashValue)
-
-	proof, _, _ := iClaimsTree.GenerateProof(ctx, hashIndex,
-		iClaimsTree.Root())
-
-	stateAfterClaimAdd, _ := merkletree.HashElems(
-		iClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
-
-	issuerStateAfterClaimAdd := circuits.TreeState{
-		State:          stateAfterClaimAdd,
-		ClaimsRoot:     iClaimsTree.Root(),
-		RevocationRoot: &merkletree.HashZero,
-		RootOfRoots:    &merkletree.HashZero,
-	}
-
-	issuerRevTreeStorage := memory.NewMemoryStorage()
-	issuerRevTree, _ := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
-		40)
-
-	proofNotRevoke, _, _ := issuerRevTree.GenerateProof(ctx,
-		big.NewInt(int64(nonce)), issuerRevTree.Root())
-
-	inputsAuthClaim := circuits.Claim{
-		//Schema:    authClaim.Schema,
-		Claim:     userAuthCoreClaim,
-		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
-		NonRevProof: &circuits.ClaimNonRevStatus{
-			TreeState: userAuthTreeState,
-			Proof:     mtpProofUser,
-		},
-	}
-
-	claimIssuerSignature := circuits.BJJSignatureProof{
-		IssuerID:           issuerIdentity,
-		IssuerTreeState:    issuerAuthTreeState,
-		IssuerAuthClaimMTP: mtpProofIssuer,
-		Signature:          claimSignature,
-		IssuerAuthClaim:    issuerAuthClaim,
-		IssuerAuthNonRevProof: circuits.ClaimNonRevStatus{
-			TreeState: issuerAuthTreeState,
-			Proof:     issuerAuthNonRevProof,
-		},
-	}
-
-	inputsUserClaim := circuits.Claim{
-		Claim:     issuerCoreClaim,
-		Proof:     proof,
-		TreeState: issuerStateAfterClaimAdd,
-		NonRevProof: &circuits.ClaimNonRevStatus{
-			TreeState: issuerStateAfterClaimAdd,
-			Proof:     proofNotRevoke,
-		},
-		IssuerID:       issuerIdentity,
-		SignatureProof: claimIssuerSignature,
-	}
-
-	query := circuits.Query{
-		SlotIndex: 2,
+	// Define the query for the verifier
+	// SlotIndex identifies the location inside the claim of the queried data
+	// Values identifies the queried value
+	// Operator 2 means "more than"
+	query := MultiQuery{
+		SlotIndex: []*big.Int{new(big.Int).SetInt64(2),new(big.Int).SetInt64(3)},
 		Values:    []*big.Int{new(big.Int).SetInt64(18),new(big.Int).SetInt64(3)},
-		Operator:  2,
+		Operator:  []*big.Int{new(big.Int).SetInt64(2),new(big.Int).SetInt64(2)},
 	}
 
-	atomicInputs := circuits.AtomicQuerySigInputs{
-		ID:        userIdentity,
-		AuthClaim: inputsAuthClaim,
-		Challenge: challenge,
-		Signature: challengeSignature,
-
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-
-		Claim: inputsUserClaim,
-
-		Query: query,
+	q := make([]*big.Int, 62)
+	for i := 0; i < 62; i++ {
+		q[i] = big.NewInt(0)
 	}
 
-	bytesInputs, _ := atomicInputs.InputsMarshal()
+	values := append(query.Values, q...)
 
-	fmt.Println(string(bytesInputs))
+	// Issuer signs the claim
+	claimSignature := privKey.SignPoseidon(commonHash.BigInt())
+	// https://github.com/iden3/go-iden3-crypto/blob/master/babyjub/eddsa.go#L289
+	// Signature used EdDSA hash schema
 
+	circuitInputs := verifyClaimCircuitInputs{
+		Claim:        ageClaim,
+		SignatureR8X: claimSignature.R8.X.String(),
+		SignatureR8Y: claimSignature.R8.Y.String(),
+		SignatureS:   claimSignature.S.String(),
+		PubKeyX:      X.String(),
+		PubKeyY:      Y.String(),
+		ClaimSchema:  ageClaim.GetSchemaHash().BigInt().String(),
+		SlotIndex:    query.SlotIndex,
+		Operator:     query.Operator,
+		Value:        values,
+	}
+
+	jsonData, _ := json.Marshal(circuitInputs)
+
+	fmt.Println(string(jsonData))
 }
 
 func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {

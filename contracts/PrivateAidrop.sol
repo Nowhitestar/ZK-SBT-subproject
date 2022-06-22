@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-/// @title over18Airdrop
+/// @title privateAirdrop
 /// @author Enrico Bottazzi
 /// @notice Verify attribute of a claim with ZKP and, if verified, execute logic.
 
@@ -19,7 +19,7 @@ interface IPrivateSoulMinter {
 }
 
 /// @title An example airdrop contract utilizing zk-proof for claim's attributes verification.
-contract PrivateOver18Airdrop {
+contract PrivateAirdrop {
 
     IPlonkVerifier verifier;
     IPrivateSoulMinter privateSoulMinter;
