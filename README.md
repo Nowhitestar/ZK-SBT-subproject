@@ -143,6 +143,8 @@ The circuits have been pre-compiled using the `powersOfTau28_hez_final_15.ptau`t
 
 Just run `npx mocha` to test the contract and the circuit
 
+Following the instruction of readme, test is not working now.
+
 ### Other Design choices
 
 - This library uses babyjubjub signature schema. This schema is more zkp friendly and require far less computation to verify signature inside a circuit. Theoretically, ECDSA schema are already usable inside circuit [0xParc - circom-ecdsa](https://github.com/0xPARC/circom-ecdsa) but the proof generation currently requires a device with 56GB RAM.

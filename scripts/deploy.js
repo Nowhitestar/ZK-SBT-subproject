@@ -1,7 +1,7 @@
 const hre = require("hardhat");
 
 /**
- * Deploys a test set of contracts: PrivateSoulMinter, PrivateOver18Airdrop, verifier
+ * Deploys a test set of contracts: PrivateSoulMinter, PrivateAirdrop, verifier
  */
 async function main() {
 
@@ -14,9 +14,9 @@ async function main() {
     let VerifierContract = await hre.ethers.getContractFactory("Verifier")
     let verifier = await VerifierContract.deploy()
     console.log(`Verifier contract address: ${verifier.address}`)
-    let PrivateOver18AirdropContract = await hre.ethers.getContractFactory("PrivateOver18Airdrop")
-    let privateOver18Aidrop = await PrivateOver18AirdropContract.deploy(verifier.address, privateSoulMinter.address)
-    console.log(`PrivateOver18Airdrop contract address: ${privateOver18Aidrop.address}`)
+    let PrivateAirdropContract = await hre.ethers.getContractFactory("PrivateAirdrop")
+    let privateAidrop = await PrivateAirdropContract.deploy(verifier.address, privateSoulMinter.address)
+    console.log(`PrivateAirdrop contract address: ${privateAidrop.address}`)
 }
 
 main()

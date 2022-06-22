@@ -24,8 +24,8 @@ async function main() {
     let input = calldata.slice(11,) 
     let tokenID = "1"; // to add
 
-    let privateOver18Aidrop = await hre.ethers.getContractAt("PrivateOver18Airdrop", PRIVATAIDROP_ADDR)
-    await privateOver18Aidrop.connect(collector).collectAirdrop(a, b, c, input, tokenID);
+    let privateAidrop = await hre.ethers.getContractAt("PrivateAirdrop", PRIVATAIDROP_ADDR)
+    await privateAidrop.connect(collector).collectAirdrop(a, b, c, input, tokenID);
     console.log(`Proof verified`)
 
 
